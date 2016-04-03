@@ -38,4 +38,4 @@ colnames(tt)[1:2] <- c("Subject", "Activity")
 
 #Produces the text file that has the mean for the each numeric column 
 tds <- ddply(tt, c("Subject", "Activity"), function(x) colMeans(x[,3:ncol(x)]))
-write.table(tds, file = "tds.tx")
+write.table(tds, file = "tds.txt", row.names = FALSE)
