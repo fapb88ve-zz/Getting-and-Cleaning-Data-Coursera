@@ -1,0 +1,41 @@
+#Takes the URL, downloads the file, and unzips into the Working Directory.
+link <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
+download(link, destfile = "cp.zip")
+unzip("cp.zip")
+
+#Reads the x and y  data tables for the trainin and test directories  
+testx <- read.table("./UCI HAR Dataset/test/x_test.txt")
+testy <- read.table("./UCI HAR Dataset/test/y_test.txt")
+trainx <- read.table("./UCI HAR Dataset/train/x_train.txt")
+trainy <- read.table("./UCI HAR Dataset/train/y_train.txt")
+
+#Row binds each of the aforementioned data tables
+ttx <- rbind(testx, trainx)
+tty <- rbind(testy, trainy)
+
+#Reads the data table for the activity labels
+act_lab <- read.table("./UCI HAR Dataset/activity_labels.txt")
+
+#Reads the features data table and picks columns with Mean and STD only
+features <- read.table("./UCI HAR Dataset/features.txt")
+feat <- grep(".*mean.*|.*std.*", features[,2])
+featn <- features[feat, 2]
+
+#Sets the name of the column for the data set ttx with featn
+ttx <- ttx[, feat]
+colnames(ttx) <- featn
+
+#Reads the data tables of the subjects, and row binds them
+subtra <- read.table("./UCI HAR Dataset/train/subject_train.txt")
+subtes <- read.table("./UCI HAR Dataset/test/subject_test.txt")
+sub <- rbind(subtes, subtra)
+
+#Column binds all three data tables, sets the names for the columns,
+## and assigns factor and factor names to the activity column
+tt <- cbind(sub, tty, ttx)
+tt[,2] <- factor(tt[,2], act_lab[,1], labels = act_lab[,2])
+colnames(tt)[1:2] <- c("Subject", "Activity")
+
+#Produces the text file that has the mean for the each numeric column 
+tds <- ddply(tt, c("Subject", "Activity"), function(x) colMeans(x[,3:ncol(x)]))
+write.table(tds, file = "tds.tx")
